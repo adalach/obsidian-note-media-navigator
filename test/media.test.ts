@@ -1,0 +1,52 @@
+import { describe, expect, it } from "vitest";
+import { mediaKey, parseMedia } from "../src/media";
+
+describe("parseMedia", () => {
+	it("lists wikilinks, Markdown embeds, HTML media, and tables in source order", () => {
+		const note = [
+			"# Gallery",
+			"![[figure.svg|300]] ![Photo](photos/a%20b.png)",
+			"<video src='clips/demo.mp4'></video>",
+			"![[paper.pdf#page=2]]",
+			"| Name | Value |",
+			"| --- | --- |",
+			"| A | 1 |",
+			"<table><tr><th>One</th></tr><tr><td>Two</td></tr></table>",
+			"![[sound.mp3]]"
+		].join("\n");
+		const items = parseMedia(note);
+		expect(items.map(({ kind, line }) => [kind, line])).toEqual([
+			["svg", 1], ["image", 1], ["video", 2], ["pdf", 3],
+			["table", 4], ["table", 7], ["audio", 8]
+		]);
+		expect(items[1]?.target).toBe("photos/a b.png");
+		expect(items[4]?.tableRows).toEqual([["Name", "Value"], ["A", "1"]]);
+	});
+
+	it("ignores frontmatter, code, and comments", () => {
+		const note = [
+			"---", "cover: '![[front.png]]'", "---",
+			"`![[inline.png]]` %% ![[comment.png]] %% ![[real.jpg]]",
+			"```md", "![[fenced.pdf]]", "```",
+			"%%", "![[long-comment.mp4]]", "%%"
+		].join("\n");
+		expect(parseMedia(note).map((item) => item.target)).toEqual(["real.jpg"]);
+	});
+});
+
+describe("mediaKey", () => {
+	it("stays the same when only the item's position changes", () => {
+		const [before] = parseMedia("![[paper.pdf]]");
+		const [after] = parseMedia("New first line\n\nText ![[paper.pdf]]");
+		expect(before && after && mediaKey(before)).toBe(after && mediaKey(after));
+	});
+
+	it("changes with the target or the table's cells", () => {
+		const keys = parseMedia([
+			"![[a.png]] ![[b.png]]",
+			"", "| x |", "| --- |", "| 1 |",
+			"", "| x |", "| --- |", "| 2 |"
+		].join("\n")).map(mediaKey);
+		expect(new Set(keys).size).toBe(4);
+	});
+});
