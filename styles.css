@@ -8,8 +8,9 @@
 .nmn-size-row { margin-bottom: 12px; color: var(--text-muted); font-size: var(--font-ui-smaller); }
 .nmn-size-row label { display: grid; gap: 5px; }
 .nmn-size-row input { width: 100%; accent-color: var(--interactive-accent); }
-.nmn-list { display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; gap: 8px; }
-.nmn-card { display: block; flex: 0 0 max(85px, calc(var(--nmn-card-width) - 8px)); height: auto; min-width: 0; max-width: 100%; padding: 0; border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); background: var(--background-primary-alt); color: var(--text-normal); text-align: left; overflow: hidden; cursor: pointer; }
+/* Masonry: pane.ts places each card in the shortest column and sets the variables. */
+.nmn-list { position: relative; height: var(--nmn-list-height, auto); }
+.nmn-card { display: block; position: absolute; top: 0; left: 0; width: var(--nmn-card-px, 100%); transform: translate(var(--nmn-x, 0), var(--nmn-y, 0)); height: auto; min-width: 0; padding: 0; border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); background: var(--background-primary-alt); color: var(--text-normal); text-align: left; overflow: hidden; cursor: pointer; }
 .nmn-card:hover { border-color: var(--interactive-accent); }
 .nmn-preview { width: 100%; height: clamp(75px, 12vw, 190px); display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--background-secondary); pointer-events: none; }
 .nmn-preview:has(> img) { display: block; height: auto; }

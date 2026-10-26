@@ -18,6 +18,9 @@ const CARD_HINT = Platform.isDesktopApp
 // Obsidian's own "Reveal in Finder" calls App.showInFolder, which the typed API leaves out. It works on desktop only.
 type AppWithShowInFolder = App & { showInFolder?: (path: string) => void };
 
+const CARD_GAP = 8;
+const MIN_CARD_WIDTH = 85;
+
 /** A drawn card. `key` names the media its preview shows (see mediaKey). */
 interface Card {
 	key: string;
@@ -36,6 +39,9 @@ export class MediaPane extends ItemView {
 	private cards: Card[] = [];
 	private cardsNotePath: string | null = null;
 	private refreshToken = 0;
+	// Watches the list's width and each card's height (images load late), to place the cards again.
+	private resizeObserver: ResizeObserver | null = null;
+	private layoutFrame: number | null = null;
 
 	constructor(leaf: WorkspaceLeaf, private readonly plugin: NoteMediaNavigatorPlugin) {
 		super(leaf);
@@ -60,6 +66,8 @@ export class MediaPane extends ItemView {
 		});
 		slider.value = String(this.plugin.settings.sizePercent);
 		this.listEl = content.createDiv({ cls: "nmn-list" });
+		this.resizeObserver = new ResizeObserver(() => this.scheduleLayout());
+		this.resizeObserver.observe(this.listEl);
 		this.applySize();
 		this.renderFilters();
 		this.registerDomEvent(slider, "input", () => {
@@ -99,6 +107,10 @@ export class MediaPane extends ItemView {
 
 	async onClose(): Promise<void> {
 		this.refreshToken++;
+		this.resizeObserver?.disconnect();
+		this.resizeObserver = null;
+		if (this.layoutFrame !== null) window.cancelAnimationFrame(this.layoutFrame);
+		this.layoutFrame = null;
 		this.items = [];
 		this.cards = [];
 		this.cardsNotePath = null;
@@ -132,7 +144,45 @@ export class MediaPane extends ItemView {
 	}
 
 	private applySize(): void {
-		this.listEl?.setCssProps({ "--nmn-card-width": `${this.plugin.settings.sizePercent}%` });
+		this.layout();
+	}
+
+	private scheduleLayout(): void {
+		if (this.layoutFrame !== null) return;
+		this.layoutFrame = window.requestAnimationFrame(() => {
+			this.layoutFrame = null;
+			this.layout();
+		});
+	}
+
+	/**
+	 * Masonry: each card goes into the column that is shortest so far, so short cards leave no gaps and a card
+	 * higher up still comes earlier in the note. The thumbnail size is a share of the width, gaps included,
+	 * so 50% gives two columns that fill the pane.
+	 */
+	private layout(): void {
+		const list = this.listEl;
+		if (!list) return;
+		if (!this.cards.length) {
+			list.setCssProps({ "--nmn-list-height": "auto" });
+			return;
+		}
+		const width = list.clientWidth;
+		const cardWidth = Math.max(MIN_CARD_WIDTH, (width + CARD_GAP) * this.plugin.settings.sizePercent / 100 - CARD_GAP);
+		const columns = Math.max(1, Math.floor((width + CARD_GAP) / (cardWidth + CARD_GAP) + 1e-6));
+		list.setCssProps({ "--nmn-card-px": `${cardWidth}px` });
+		// Read every height before moving any card, so the browser lays out once.
+		const heights = this.cards.map((card) => card.el.offsetHeight);
+		const columnHeights = new Array<number>(columns).fill(0);
+		this.cards.forEach((card, position) => {
+			const column = columnHeights.indexOf(Math.min(...columnHeights));
+			card.el.setCssProps({
+				"--nmn-x": `${column * (cardWidth + CARD_GAP)}px`,
+				"--nmn-y": `${columnHeights[column] ?? 0}px`
+			});
+			columnHeights[column] = (columnHeights[column] ?? 0) + (heights[position] ?? 0) + CARD_GAP;
+		});
+		list.setCssProps({ "--nmn-list-height": `${Math.max(...columnHeights) - CARD_GAP}px` });
 	}
 
 	private renderFilters(): void {
@@ -163,14 +213,18 @@ export class MediaPane extends ItemView {
 				const card = this.cards[position];
 				if (card) this.updateCard(card, item, index);
 			});
+			this.scheduleLayout();
 			return;
 		}
 		container.empty();
 		this.cards = [];
 		this.cardsNotePath = this.notePath;
+		this.resizeObserver?.disconnect();
+		this.resizeObserver?.observe(container);
 		if (!visible.length) {
 			container.createDiv({ cls: "nmn-empty", text: this.notePath
 				? "No matching media in this note." : "No note selected." });
+			this.layout();
 			return;
 		}
 		for (const { item, index } of visible) {
@@ -184,7 +238,10 @@ export class MediaPane extends ItemView {
 			};
 			this.updateCard(card, item, index);
 			this.cards.push(card);
+			this.resizeObserver?.observe(el);
 		}
+		// Place the cards before the first paint; the observer places them again as images load.
+		this.layout();
 	}
 
 	private updateCard(card: Card, item: MediaItem, index: number): void {

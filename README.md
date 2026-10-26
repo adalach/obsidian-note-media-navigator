@@ -23,7 +23,9 @@ Code blocks, inline code, `%%` comments and the note's properties are skipped. A
 | Show the file in Finder or Explorer  | Option-click (macOS) or Alt-click                                                         |
 | More actions                         | Right-click a card (press and hold on a phone)                                            |
 | Show or hide one kind                | Click its chip: Images, SVG, PDF, Video, Audio or Tables                                  |
-| Make the cards larger or smaller     | Move the **Thumbnail size** slider, from a quarter to the full width of the sidebar      |
+| Make the cards larger or smaller     | Move the **Thumbnail size** slider: 50% gives two columns, 25% four, 100% one             |
+
+Cards of different heights stack into columns without gaps. Each card goes into the column that is shortest so far, so a card further down the pane always comes later in the note.
 
 The pane follows the note you last worked in and updates as you type. The pane opens when you turn the plugin on; afterwards Obsidian keeps it where you put it, and once closed it stays closed until you open it again. The chips and the thumbnail size are remembered.
 
