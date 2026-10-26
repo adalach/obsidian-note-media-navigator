@@ -4,6 +4,8 @@
 
 Long notes collect figures, tables, PDFs and recordings, and finding one again means scrolling. Note Media Navigator lists everything the current note embeds in a sidebar, in the order it appears, each with a preview. Click a card to jump to that place in the note.
 
+![The Note media pane beside a long note: clicking cards jumps to a chart, a PDF and a video in the note; the chips hide and show each kind; the thumbnail size and a wider sidebar change the number of columns](assets/note-media-navigator-demo.webp)
+
 ## What it lists
 
 - **Images and SVG** embedded with `![[figure.png]]`, `![caption](figure.png)` or an HTML `<img>` tag, from the vault or the web.

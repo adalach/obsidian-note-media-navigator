@@ -7,3 +7,6 @@ main.js
 data.json
 
 .DS_Store
+
+# one-off local tools (the demo renderer reads a local screen recording)
+temp/
