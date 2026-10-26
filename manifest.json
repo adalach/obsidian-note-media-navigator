@@ -1,7 +1,7 @@
 {
   "id": "note-media-navigator",
   "name": "Note Media Navigator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minAppVersion": "1.7.2",
   "description": "List the figures, tables, PDFs, videos and audio in the current note in a sidebar, and jump to each one.",
   "author": "Agata Dalach",

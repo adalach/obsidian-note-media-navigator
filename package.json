@@ -1,6 +1,6 @@
 {
   "name": "note-media-navigator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "A sidebar list of the figures, tables and other media in the current Obsidian note.",
   "author": "Agata Dalach",
