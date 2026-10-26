@@ -13,8 +13,8 @@
 .nmn-card { display: block; position: absolute; top: 0; left: 0; width: var(--nmn-card-px, 100%); transform: translate(var(--nmn-x, 0), var(--nmn-y, 0)); height: auto; min-width: 0; padding: 0; border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); background: var(--background-primary-alt); color: var(--text-normal); text-align: left; overflow: hidden; cursor: pointer; }
 .nmn-card:hover { border-color: var(--interactive-accent); }
 .nmn-preview { width: 100%; height: clamp(75px, 12vw, 190px); display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--background-secondary); pointer-events: none; }
-.nmn-preview:has(> img) { display: block; height: auto; }
-.nmn-preview:has(.nmn-table) { display: block; height: auto; max-height: 190px; padding: 4px; }
+.nmn-preview.is-image { display: block; height: auto; }
+.nmn-preview.is-table { display: block; height: auto; max-height: 190px; padding: 4px; }
 .nmn-preview img { display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain; border: 0; }
 .nmn-preview video, .nmn-preview iframe { width: 100%; height: 100%; object-fit: contain; border: 0; }
 .nmn-preview iframe { background: white; }

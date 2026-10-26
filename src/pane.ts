@@ -253,6 +253,7 @@ export class MediaPane extends ItemView {
 		if (card.key === key) return;
 		card.key = key;
 		card.preview.empty();
+		card.preview.removeClass("is-image", "is-table");
 		this.renderPreview(card.preview, item);
 	}
 
@@ -275,6 +276,8 @@ export class MediaPane extends ItemView {
 		if (!url) {
 			this.renderPlaceholder(container, "file-question", "File unavailable");
 		} else if (item.kind === "image" || item.kind === "svg") {
+			// The class sizes the preview to the image (a class rather than :has(), which the plugin review flags as slow).
+			container.addClass("is-image");
 			const image = container.createEl("img", { attr: { src: url, alt: item.title, loading: "lazy" } });
 			image.draggable = false;
 		} else if (item.kind === "video") {
@@ -303,6 +306,7 @@ export class MediaPane extends ItemView {
 				Array.from(tr.querySelectorAll("th, td")).map((cell) => cell.textContent?.trim() ?? ""));
 		}
 		if (!rows?.length) return;
+		container.addClass("is-table");
 		const table = container.createEl("table", { cls: "nmn-table" });
 		for (const [rowIndex, row] of rows.slice(0, 6).entries()) {
 			const tr = table.createEl("tr");
