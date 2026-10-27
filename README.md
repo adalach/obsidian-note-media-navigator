@@ -9,7 +9,7 @@ Long notes collect figures, tables, PDFs and recordings, and finding one again m
 ## What it lists
 
 - **Images and SVG** embedded with `![[figure.png]]`, `![caption](figure.png)` or an HTML `<img>` tag, from the vault or the web.
-- **PDFs, video and audio** embedded the same ways. A PDF card shows the first page, a video card the first frame, and audio a tile.
+- **PDFs, video and audio** embedded the same ways. A PDF card shows the page the link opens at (the first, or the one in `#page=3`) in its own proportions, a video card the first frame, and audio a tile.
 - **Tables:** Markdown pipe tables and HTML `<table>`s, previewed with their first six rows and five columns.
 
 Code blocks, inline code, `%%` comments and the note's properties are skipped. A file embedded twice is listed twice.
@@ -40,7 +40,6 @@ The pane follows the note you last worked in and updates as you type. The pane o
 - Desktop and mobile. Showing a file in Finder or Explorer and dragging cards into notes are desktop only.
 - Embedded notes, Canvas files, drawings from other plugins and content other plugins generate while a note renders are not listed.
 - Not detected: HTML media tags whose `src` spans several lines, and Markdown embeds whose address has an unescaped `)`.
-- With some themes or PDF settings, a PDF card shows a blank page or an icon instead of the first page. The card still works.
 
 ## Privacy
 

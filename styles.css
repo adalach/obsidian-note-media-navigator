@@ -16,8 +16,7 @@
 .nmn-preview.is-image { display: block; height: auto; }
 .nmn-preview.is-table { display: block; height: auto; max-height: 190px; padding: 4px; }
 .nmn-preview img { display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain; border: 0; }
-.nmn-preview video, .nmn-preview iframe { width: 100%; height: 100%; object-fit: contain; border: 0; }
-.nmn-preview iframe { background: white; }
+.nmn-preview video { width: 100%; height: 100%; object-fit: contain; border: 0; }
 .nmn-placeholder { display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--text-muted); font-size: var(--font-ui-smaller); }
 .nmn-placeholder svg { width: 25px; height: 25px; }
 .nmn-caption { padding: 6px; }

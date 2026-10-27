@@ -1,6 +1,7 @@
 import { MarkdownView, Plugin, TFile, type WorkspaceLeaf } from "obsidian";
 import { DRAG_TYPE, embedFor, insertAtDrop, parsePayload } from "./drag";
 import { MEDIA_KINDS, type MediaKind } from "./media";
+import { clearPdfThumbnails } from "./pdf";
 import { MediaPane, VIEW_TYPE } from "./pane";
 
 interface NavigatorSettings {
@@ -67,6 +68,7 @@ export default class NoteMediaNavigatorPlugin extends Plugin {
 
 	onunload(): void {
 		if (this.refreshTimer !== null) window.clearTimeout(this.refreshTimer);
+		clearPdfThumbnails();
 	}
 
 	private async loadSettings(): Promise<void> {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parsePayload, subpathOf, webEmbed } from "../src/drag";
-import { mediaKey, parseMedia } from "../src/media";
+import { mediaKey, parseMedia, pdfPage } from "../src/media";
 
 describe("parseMedia", () => {
 	it("lists wikilinks, Markdown embeds, HTML media, and tables in source order", () => {
@@ -68,5 +68,14 @@ describe("drag payloads", () => {
 		expect(parsePayload(JSON.stringify({ url: "https://example.com/a.png" }))).toEqual({ url: "https://example.com/a.png" });
 		expect(parsePayload("")).toBeNull();
 		expect(parsePayload(JSON.stringify({ path: 3 }))).toBeNull();
+	});
+});
+
+describe("pdfPage", () => {
+	it("reads the page a PDF link opens at, else the first", () => {
+		expect(pdfPage("paper.pdf#page=3")).toBe(3);
+		expect(pdfPage("paper.pdf#zoom=50&page=12")).toBe(12);
+		expect(pdfPage("paper.pdf")).toBe(1);
+		expect(pdfPage("paper.pdf#page=0")).toBe(1);
 	});
 });

@@ -1,6 +1,7 @@
 import { ItemView, Keymap, MarkdownView, Menu, Notice, Platform, setIcon, TFile, type App, type PaneType, type WorkspaceLeaf } from "obsidian";
 import { DRAG_TYPE, embedFor, subpathOf, type DragPayload } from "./drag";
-import { MEDIA_KINDS, mediaKey, parseMedia, type MediaItem, type MediaKind } from "./media";
+import { MEDIA_KINDS, mediaKey, parseMedia, pdfPage, type MediaItem, type MediaKind } from "./media";
+import { pdfThumbnail } from "./pdf";
 import type NoteMediaNavigatorPlugin from "./main";
 
 export const VIEW_TYPE = "note-media-navigator-view";
@@ -270,6 +271,7 @@ export class MediaPane extends ItemView {
 		card.key = key;
 		card.preview.empty();
 		card.preview.removeClass("is-image", "is-table");
+		card.preview.dataset.media = key;
 		this.renderPreview(card.preview, item);
 	}
 
@@ -299,7 +301,7 @@ export class MediaPane extends ItemView {
 			this.renderTable(container, item);
 			return;
 		}
-		const { url } = this.resolve(item);
+		const { file, url } = this.resolve(item);
 		if (!url) {
 			this.renderPlaceholder(container, "file-question", "File unavailable");
 		} else if (item.kind === "image" || item.kind === "svg") {
@@ -309,14 +311,30 @@ export class MediaPane extends ItemView {
 			image.draggable = false;
 		} else if (item.kind === "video") {
 			container.createEl("video", { attr: { src: url, preload: "metadata", muted: "", playsinline: "" } });
-		} else if (item.kind === "pdf" && /^https?:\/\//i.test(url)) {
-			// Obsidian does not load web PDFs in a note, so the pane does not open one in a frame either.
-			this.renderPlaceholder(container, "globe", "Web PDF");
+		} else if (item.kind === "pdf" && file) {
+			this.renderPdf(container, item, file);
 		} else if (item.kind === "pdf") {
-			container.createEl("iframe", { attr: { src: `${url}#page=1&toolbar=0&navpanes=0`, title: item.title, loading: "lazy" } });
+			// Obsidian does not load web PDFs in a note, so the pane does not load one either.
+			this.renderPlaceholder(container, "globe", "Web PDF");
 		} else {
 			this.renderPlaceholder(container, "audio-lines", "Audio");
 		}
+	}
+
+	/**
+	 * The page the link opens at, drawn by pdf.js as an image with the page's own proportions. Chromium's PDF viewer
+	 * in a frame filled the rest of the card with its dark background. Shows an icon until the image is ready, and
+	 * keeps it when pdf.js cannot read the file.
+	 */
+	private renderPdf(container: HTMLElement, item: MediaItem, file: TFile): void {
+		const key = mediaKey(item);
+		this.renderPlaceholder(container, "file-text", "PDF");
+		void pdfThumbnail(this.app, file, pdfPage(item.target ?? "")).then((src) => {
+			if (!src || container.dataset.media !== key) return;     // the card shows something else by now
+			container.empty();
+			container.addClass("is-image");
+			container.createEl("img", { attr: { src, alt: item.title } }).draggable = false;
+		});
 	}
 
 	private renderPlaceholder(container: HTMLElement, icon: string, text: string): void {

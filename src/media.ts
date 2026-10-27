@@ -26,6 +26,12 @@ export function mediaKey(item: MediaItem): string {
 	return JSON.stringify([item.kind, item.target ?? "", item.tableRows ?? item.htmlTable ?? null]);
 }
 
+/** The page a PDF link opens at (`paper.pdf#page=3`), else the first. */
+export function pdfPage(target: string): number {
+	const page = Number(/#(?:.*&)?page=(\d+)/.exec(target)?.[1]);
+	return Number.isInteger(page) && page > 0 ? page : 1;
+}
+
 export function cleanTarget(value: string): string {
 	let result = value.trim();
 	if (result.startsWith("<") && result.endsWith(">")) result = result.slice(1, -1);
