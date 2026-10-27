@@ -20,6 +20,7 @@ Code blocks, inline code, `%%` comments and the note's properties are skipped. A
 | ------------------------------------ | ----------------------------------------------------------------------------------------- |
 | Open the pane                        | Ribbon icon **Open note media**, or the command **Note Media Navigator: Open note media** |
 | Go to an item in the note            | Click its card                                                                            |
+| Embed it in a note                   | Drag the card into a note, the same one or one in another tab or split                   |
 | Open the file in a new tab           | Cmd-click (macOS), Ctrl-click or middle-click; a web address opens in the browser        |
 | Open the file in a split             | Cmd-Option-click (macOS) or Ctrl-Alt-click                                                |
 | Show the file in Finder or Explorer  | Option-click (macOS) or Alt-click                                                         |
@@ -29,12 +30,14 @@ Code blocks, inline code, `%%` comments and the note's properties are skipped. A
 
 Cards of different heights stack into columns without gaps. Each card goes into the column that is shortest so far, so a card further down the pane always comes later in the note.
 
+A dragged card drops an embed such as `![[figure.png]]` where you let go: a link to the file where it already is, so nothing is copied in the vault. The link follows your **Files and links** settings (wikilink or Markdown, shortest or relative path) for the note it lands in, and keeps a PDF page such as `#page=2`. Tables cannot be dragged.
+
 The pane follows the note you last worked in and updates as you type. The pane opens when you turn the plugin on; afterwards Obsidian keeps it where you put it, and once closed it stays closed until you open it again. The chips and the thumbnail size are remembered.
 
 ## Compatibility
 
 - Live Preview, Source mode and Reading view. In Reading view a click scrolls the note to the item.
-- Desktop and mobile. Showing a file in Finder or Explorer is desktop only.
+- Desktop and mobile. Showing a file in Finder or Explorer and dragging cards into notes are desktop only.
 - Embedded notes, Canvas files, drawings from other plugins and content other plugins generate while a note renders are not listed.
 - Not detected: HTML media tags whose `src` spans several lines, and Markdown embeds whose address has an unescaped `)`.
 - With some themes or PDF settings, a PDF card shows a blank page or an icon instead of the first page. The card still works.

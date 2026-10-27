@@ -1,4 +1,5 @@
 import { MarkdownView, Plugin, TFile, type WorkspaceLeaf } from "obsidian";
+import { DRAG_TYPE, embedFor, insertAtDrop, parsePayload } from "./drag";
 import { MEDIA_KINDS, type MediaKind } from "./media";
 import { MediaPane, VIEW_TYPE } from "./pane";
 
@@ -44,6 +45,15 @@ export default class NoteMediaNavigatorPlugin extends Plugin {
 		// A renamed or deleted file changes what a preview resolves to, though the note's text is the same.
 		this.registerEvent(this.app.vault.on("rename", () => this.scheduleRefresh(true)));
 		this.registerEvent(this.app.vault.on("delete", () => this.scheduleRefresh(true)));
+		// A card dropped into a note: link to the original file, written for the note it lands in.
+		this.registerEvent(this.app.workspace.on("editor-drop", (event, editor, info) => {
+			if (event.defaultPrevented) return;
+			const payload = parsePayload(event.dataTransfer?.getData(DRAG_TYPE) ?? "");
+			const text = payload ? embedFor(this.app, payload, info.file?.path ?? "") : null;
+			if (!text) return;
+			event.preventDefault();
+			insertAtDrop(editor, event, text);
+		}));
 		this.app.workspace.onLayoutReady(() => {
 			this.captureActiveNote();
 			this.scheduleRefresh();

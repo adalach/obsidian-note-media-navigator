@@ -1,4 +1,5 @@
 import { ItemView, Keymap, MarkdownView, Menu, Notice, Platform, setIcon, TFile, type App, type PaneType, type WorkspaceLeaf } from "obsidian";
+import { DRAG_TYPE, embedFor, subpathOf, type DragPayload } from "./drag";
 import { MEDIA_KINDS, mediaKey, parseMedia, type MediaItem, type MediaKind } from "./media";
 import type NoteMediaNavigatorPlugin from "./main";
 
@@ -11,7 +12,7 @@ const LABELS: Record<MediaKind, string> = {
 const REVEAL_LABEL = Platform.isMacOS ? "Reveal in Finder" : "Show in system explorer";
 
 const CARD_HINT = Platform.isDesktopApp
-	? `Click to show it in the note; ${Platform.isMacOS ? "Cmd" : "Ctrl"}-click to open the file; ` +
+	? `Click to show it in the note; drag it into a note to embed it there; ${Platform.isMacOS ? "Cmd" : "Ctrl"}-click to open the file; ` +
 		`${Platform.isMacOS ? "Option" : "Alt"}-click: ${REVEAL_LABEL}; right-click for more.`
 	: "Tap to show it in the note; press and hold for more.";
 
@@ -101,6 +102,20 @@ export class MediaPane extends ItemView {
 			if (!item) return;
 			event.preventDefault();
 			this.itemMenu(item).showAtMouseEvent(event);
+		});
+		// A card dragged into a note embeds its file: the plugin's editor-drop handler writes the link for the note
+		// it lands in; any other drop target gets the embed as plain text.
+		this.registerDomEvent(this.listEl, "dragstart", (event: DragEvent) => {
+			const item = this.itemAt(event);
+			const payload = item ? this.dragPayload(item) : null;
+			const text = payload ? embedFor(this.app, payload, this.notePath ?? "") : null;
+			if (!payload || !text || !event.dataTransfer) {
+				event.preventDefault();
+				return;
+			}
+			event.dataTransfer.effectAllowed = "copy";
+			event.dataTransfer.setData("text/plain", text);
+			event.dataTransfer.setData(DRAG_TYPE, JSON.stringify(payload));
 		});
 		await this.refresh(true);
 	}
@@ -249,6 +264,7 @@ export class MediaPane extends ItemView {
 		card.el.setAttribute("aria-label", `${item.title}, ${LABELS[item.kind]}, line ${item.line + 1}. ${CARD_HINT}`);
 		card.title.setText(item.title);
 		card.meta.setText(`${LABELS[item.kind]} · line ${item.line + 1}`);
+		card.el.draggable = this.dragPayload(item) !== null;
 		const key = mediaKey(item);
 		if (card.key === key) return;
 		card.key = key;
@@ -265,6 +281,17 @@ export class MediaPane extends ItemView {
 		const file = this.app.metadataCache.getFirstLinkpathDest(path, this.notePath ?? "")
 			?? this.app.vault.getFileByPath(path);
 		return file ? { file, url: this.app.vault.getResourcePath(file) } : { file: null, url: null };
+	}
+
+	/** What dragging the card carries: its vault file or web address. Tables and missing files cannot be dragged. */
+	private dragPayload(item: MediaItem): DragPayload | null {
+		if (item.kind === "table") return null;
+		const { file, url } = this.resolve(item);
+		if (file) {
+			const subpath = subpathOf(item.target ?? "");
+			return subpath ? { path: file.path, subpath } : { path: file.path };
+		}
+		return url && /^https?:\/\//i.test(url) ? { url } : null;
 	}
 
 	private renderPreview(container: HTMLElement, item: MediaItem): void {

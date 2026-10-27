@@ -22,6 +22,8 @@ Obsidian loads `main.js`, `manifest.json` and `styles.css` from `<vault>/.obsidi
 
 A click on a card goes to the item: in Live Preview and Source mode it places the cursor on the item's line and centres it; in Reading view it calls `currentMode.applyScroll(line)`. Reading view marks only list items, checklists and code blocks with `data-line`, counted from the start of their section, so those markers cannot locate an image in a paragraph. `Keymap.isModEvent` turns Cmd/Ctrl-clicks and middle-clicks into a new tab, split or window, as elsewhere in Obsidian. Option/Alt-click calls `App.showInFolder`, the function behind Obsidian's own **Reveal in Finder** and **Show in system explorer**; it is not in the typed API, so the code checks that it exists. The right-click menu offers the same actions, and on a phone it opens on press and hold.
 
+`src/drag.ts` lets a card be dragged into a note as an embed of its file. On `dragstart` the pane puts two things in the drag data. Under `application/x-note-media-navigator` goes the file's path, with the original link's subpath such as `#page=2`, or the web address. As plain text goes an embed written for the note the card came from. A drop into a note's editor fires Obsidian's `editor-drop` event. `main.ts` handles it with `embedFor`, which writes `"!" + fileManager.generateMarkdownLink(file, notePath, subpath)` for the note the card lands in. The new link therefore follows the vault's link settings, stays right in a note in another folder, and points at the original file. The handler then inserts the embed at the pointer through the editor's CodeMirror view (`editor.cm.posAtCoords`, outside the typed API), or at the cursor if that is missing. Calling `preventDefault` stops Obsidian from also inserting the plain text; Obsidian's own editor drop handler returns early when `editor-drop` was handled. Other drop targets, such as another app, get the plain-text embed. Table cards and cards whose file is missing are not draggable. `effectAllowed` is `copy`, so dropping a card never moves a file.
+
 The plugin uses no Node or Electron APIs and makes no network requests, so `isDesktopOnly` is `false`. Every color in `styles.css` comes from the active theme.
 
 ## Testing in Obsidian
@@ -34,6 +36,8 @@ The checks of 2026-10-26 ran in Obsidian 1.14.5 on macOS, on a temporary note wi
 - Cmd-click on the PNG card opened it in a new tab. The right-click menus listed **Show in note**, **Open in new tab** and **Reveal in Finder** for a vault file, **Show in note** and **Open in browser** for a web PDF, and **Show in note** alone for a table.
 
 The masonry layout was checked the same day on a note with seven images from 0.27 to 3.81 times as tall as wide, a PDF and a table, in a 474 px pane. At 25%, 33%, 50% and 100% it made 4, 3, 2 and 1 columns. Within each column the cards were exactly 8 px apart, no card's top lay above the previous card's, the list was as tall as its longest column, and at 25% and 50% the columns filled the width.
+
+Dragging cards (2026-10-27) is covered by the payload tests and by reading Obsidian 1.14.5's editor drop handler. That handler fires `editor-drop` for drags that are not its own, returns when a plugin handled the event, and otherwise inserts the plain text. A simulated drag in the running app was stopped because the workspace was in use, so a real drag still has to be tried.
 
 Not yet checked: Windows and Linux, and the plugin on a phone (`isDesktopOnly` is now `false`).
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { parsePayload, subpathOf, webEmbed } from "../src/drag";
 import { mediaKey, parseMedia } from "../src/media";
 
 describe("parseMedia", () => {
@@ -48,5 +49,24 @@ describe("mediaKey", () => {
 			"", "| x |", "| --- |", "| 2 |"
 		].join("\n")).map(mediaKey);
 		expect(new Set(keys).size).toBe(4);
+	});
+});
+
+describe("drag payloads", () => {
+	it("keeps a link's subpath, such as a PDF page", () => {
+		expect(subpathOf("papers/paper.pdf#page=2")).toBe("#page=2");
+		expect(subpathOf("figure.png")).toBeUndefined();
+	});
+
+	it("embeds web addresses, in angle brackets when they hold spaces or parentheses", () => {
+		expect(webEmbed("https://example.com/a.png")).toBe("![](https://example.com/a.png)");
+		expect(webEmbed("https://example.com/a (1).png")).toBe("![](<https://example.com/a (1).png>)");
+	});
+
+	it("reads only well-formed payloads", () => {
+		expect(parsePayload(JSON.stringify({ path: "a.png", subpath: "#x" }))).toEqual({ path: "a.png", subpath: "#x" });
+		expect(parsePayload(JSON.stringify({ url: "https://example.com/a.png" }))).toEqual({ url: "https://example.com/a.png" });
+		expect(parsePayload("")).toBeNull();
+		expect(parsePayload(JSON.stringify({ path: 3 }))).toBeNull();
 	});
 });
